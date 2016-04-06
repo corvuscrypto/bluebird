@@ -78,11 +78,36 @@ var boundaryChars = map[rune]bool{
 
 //iterate through the characters in the string and parse as we go
 func parseExpr(stmt string) {
+	opStack := []string{}
+
 	tokens := tokenizeExpr(stmt)
 	for _, a := range tokens {
-		fmt.Println(a, getPrecedence(a))
+		if a == "(" {
+			opStack = append(opStack, a)
+		} else if a == ")" {
+			opStack = handleRightParen(opStack)
+		} else if len(opStack) > 0 && opStack[len(opStack)-1] != "(" {
+			p := getPrecedence(a)
+			q := getPrecedence(opStack[len(opStack)-1])
+			if p > q {
+				opStack = append(opStack, a)
+			}
+		} else {
+			opStack = append(opStack, a)
+		}
+		fmt.Println(opStack)
 	}
+}
 
+func handleRightParen(opStack []string) []string {
+	for {
+		tkn := opStack[len(opStack)-1]
+		opStack = opStack[:len(opStack)-1]
+		if tkn == "(" {
+			break
+		}
+	}
+	return opStack
 }
 
 func getPrecedence(tkn string) int {
